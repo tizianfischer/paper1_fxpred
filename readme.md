@@ -3,7 +3,7 @@
 
 
 ## Documents
-- Word for task and project documentation: [Intraday FX Spot predictions with state-of-the-art Transformer and Time Embeddings](https://onedrive.live.com/View.aspx?resid=CBDEAB06F9642D15!105)
+- Word for task and project documentation: https://1drv.ms/w/s!AhUtZPkGq97LadLiYdvNgGxE0ys?e=bKDMTo
 - Excel for Literature Overview: https://1drv.ms/x/s!AhUtZPkGq97LcjcoWyIsYTdu-Q0?e=UWrirP
 - Excel for Experiment Results: https://1drv.ms/x/s!AhUtZPkGq97Lbg4goKL8vqkZ-CQ?e=00qk5d
 
@@ -20,11 +20,13 @@
 
 1. Literaturanalyse: Excel-Übersicht Paper
 
+
 2. Forschungslücke:
 - Transformer with Time Embeddings vs LSTM/RNN/ARIMA
 - Multivariate Input Daten vs Univariate Input Daten
 - FX
 - Intraday
+
 
 3. Experimente:
 A. Systematischer Vergleich Transformer vs State-of-the-art (LSTM, RNN & ARIMA)
@@ -35,7 +37,9 @@ B. Systematischer Vergleich Multivariate Input-Daten vs Univariate Input-Daten
 § Ökonomisch: Trading Strategie (Long if Prediction > 0.1% | Short if Prediction < -0.1% | Close after 1 step)
 § Effizienz: Zeit fürs Training
 
+
 4. Titel: Intraday FX Spot predictions with state-of-the-art Transformer and Time Embeddings
+
 
 5. Data:
 - Multivariat
@@ -47,7 +51,9 @@ B. Systematischer Vergleich Multivariate Input-Daten vs Univariate Input-Daten
 - 01.11.2020 – 31.03.2021
 - Bloomberg
 
+
 6. Daten aufbereiten: Data-Merge, Completeness, Correctness
+
 
 7. Transformer trainieren, evaluieren & optimieren:
 - Overfitting beheben
@@ -62,6 +68,8 @@ B. Systematischer Vergleich Multivariate Input-Daten vs Univariate Input-Daten
 § Wo Weekend Daten? (Scatter Plot oder X-Achse ohne Datum)
 § Lineare Regression
 
+
 8. Experimente durchführen: Code von Stefan als Basis
+
 
 9. Paper schreiben: Word-Skelett als Basis
