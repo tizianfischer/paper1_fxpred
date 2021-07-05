@@ -3,9 +3,10 @@
 
 
 ## Documents
-- Word for task and project documentation: https://1drv.ms/w/s!AhUtZPkGq97LadLiYdvNgGxE0ys?e=bKDMTo
-- Excel for Literature Overview: https://1drv.ms/x/s!AhUtZPkGq97LcjcoWyIsYTdu-Q0?e=UWrirP
-- Excel for Experiment Results: https://1drv.ms/x/s!AhUtZPkGq97Lbg4goKL8vqkZ-CQ?e=00qk5d
+1) Paper: https://1drv.ms/w/s!AhUtZPkGq97LekqhMSrrbDL7RZ0?e=hW69mI
+2) Word for task and project documentation: https://1drv.ms/w/s!AhUtZPkGq97LadLiYdvNgGxE0ys?e=bKDMTo
+3) Excel for Literature Overview: https://1drv.ms/x/s!AhUtZPkGq97LcjcoWyIsYTdu-Q0?e=UWrirP
+4) Excel for Experiment Results: https://1drv.ms/x/s!AhUtZPkGq97Lbg4goKL8vqkZ-CQ?e=00qk5d
 
     
 
