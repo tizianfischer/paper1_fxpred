@@ -22,24 +22,8 @@ fp_clean = 'bbg'
 if not os.path.isdir(fp_clean):
     os.makedirs(fp_clean)
 
-# for fp in [i for i in os.listdir(fp_raw + '2') if 'batch' in i]:
-#     workbook = load_workbook(os.path.join(fp_raw + '2', fp))
-#     for i in workbook.sheetnames:
-#         x = pd.read_excel(os.path.join(fp_raw + '2', fp), sheet_name=i, header=None)
-#         x = x.loc[:, ~x.isna().all(axis=0)]
-#         x.to_excel(
-#             os.path.join(
-#                 fp_raw + '2',
-#                 i.lower() + '.xlsx' # x.iloc[0, 0].rstrip(' Curncy').lower() + '.xlsx'
-#             ),
-#             header=False,
-#             index=False
-#         )
-
 
 for fp in tqdm.tqdm(os.listdir(fp_raw)):
-    if fp not in ['gbpusd.xlsx', 'gbpcad.xlsx', 'eurgbp.xlsx']:
-        continue
     x = pd.read_excel(os.path.join(fp_raw, fp))
     x2 = pd.read_excel(os.path.join(fp_raw + '2', fp))
 
