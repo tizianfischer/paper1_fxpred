@@ -93,14 +93,16 @@ for fp in tqdm.tqdm(os.listdir(fp_raw)):
 if not os.path.exists('bbg_data_integrity/data_vis_per_fx_pair'):
     os.makedirs('bbg_data_integrity/data_vis_per_fx_pair')
 for l in tqdm.tqdm(sorted(set(i[:-2] for i in data.keys()))):
-    fig, ax = plt.subplots(nrows=7, ncols=6, clear=True, figsize=[12.8, 9.6])
+    # if os.path.exists(f'bbg_data_integrity/data_vis_per_fx_pair/{l}.png'):
+    #    continue
+    fig, ax = plt.subplots(nrows=7, ncols=6, clear=True, figsize=[16, 12])
     # fig = plt.figure(figsize=[12.8, 9.6])
     fig.suptitle(l)
     dmax = data[l + '_1'].index.max()
     cols = set(data[l + '_1'].columns)
-    cols2 = set(data[l + '_2'].columns)
-    assert cols - cols2 == set()
-    assert cols2 - cols == set()
+    # cols2 = set(data[l + '_2'].columns)
+    # assert cols - cols2 == set()
+    # assert cols2 - cols == set()
     for i, c in enumerate(sorted(cols)):
         # fig.subplot(7, 6, 1 + i)
         # frame1 = plt.gca()
@@ -128,7 +130,7 @@ data_join = {
 #%% Plot difference of metrics in overlapping time
 if not os.path.exists('bbg_data_integrity/difference_overlap'):
     os.mkdir('bbg_data_integrity/difference_overlap')
-for i, c in enumerate(set(i[:-2] for i in data_join['eurusd'].columns)):
+for i, c in tqdm.tqdm(enumerate(sorted(set(i[:-2] for i in data_join['eurusd'].columns)))):
     fig = plt.figure(i)
     for l in data_join.keys():
         if 'eurgbp': continue
@@ -143,7 +145,7 @@ for i, c in enumerate(set(i[:-2] for i in data_join['eurusd'].columns)):
 #%% Plot difference of metrics in overlapping time without eurgbp
 if not os.path.exists('bbg_data_integrity/difference_overlap_wo_eurgbp_audusd'):
     os.mkdir('bbg_data_integrity/difference_overlap_wo_eurgbp_audusd')
-for i, c in enumerate(set(i[:-2] for i in data_join['eurusd'].columns)):
+for i, c in tqdm.tqdm(enumerate(sorted(set(i[:-2] for i in data_join['eurusd'].columns)))):
     fig = plt.figure(i)
     for l in data_join.keys():
         if l in ['eurgbp', 'audusd']: continue
@@ -158,7 +160,7 @@ for i, c in enumerate(set(i[:-2] for i in data_join['eurusd'].columns)):
 # %% Plot comparison of eurgpb and audusd
 if not os.path.exists('bbg_data_integrity/comparison_eurgbp_audusd'):
     os.mkdir('bbg_data_integrity/comparison_eurgbp_audusd')
-for i, c in enumerate(set(i[:-2] for i in data_join['eurusd'].columns)):
+for i, c in tqdm.tqdm(enumerate(set(i[:-2] for i in data_join['eurusd'].columns))):
     fig = plt.figure(i)
     for l in sorted(set(i[:-2] for i in data.keys())):
         if l not in ['eurgbp', 'audusd']: continue
