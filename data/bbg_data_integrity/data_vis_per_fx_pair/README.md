@@ -1,4 +1,7 @@
-![README](README.md)
+- blue = batch1
+- grey = batch2 before last day of batch1, should be the same as batch1 data
+- green = batch2 data after last day of batch2
+
 ![audcad](audcad.png)
 ![audjpy](audjpy.png)
 ![audnzd](audnzd.png)
