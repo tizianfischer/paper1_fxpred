@@ -1,6 +1,9 @@
 import os
 import copy
+import numpy as np
 import pandas as pd
+from typing import List
+
 
 def data_read_dict(fp):
     return {
@@ -26,3 +29,63 @@ def data_merge(data):
         else:
             tmp = pd.merge(tmp, v, left_index=True, right_index=True, how='outer')
     return tmp
+
+
+def get_fx_and_metric_data(
+    *,
+    pct_change:bool=True,
+    dtype:np.float=None
+) -> pd.DataFrame:
+    """Gets the FX spot rates and combines data with metrics
+
+    Args:
+        pct_change (bool, optional): Returns percantage change. Defaults to True.
+        dtype (numpy.float, optional): data type of data, options 'numpy.floatX'. Defaults to None.
+
+    Returns:
+        pd.DataFrame: Spot rates and metrics in one pandas.DataFrame
+    """
+
+    path = 'data/10min Dataset Spot.csv'
+    df = pd.read_csv(path, delimiter=';')
+    df['Dates'] = pd.to_datetime(df['Dates'], format='%d.%m.%y %H:%M')
+    df.set_index('Dates', inplace=True)
+    df = df.asfreq('600S').ffill()
+    if pct_change:
+        df = df.pct_change()[1:]
+    assert len(set(np.diff(df.index.values))) == 1
+
+    FX_Fundamentals_path = 'data/10min Dataset Rest.csv'
+    df2 = pd.read_csv(FX_Fundamentals_path, delimiter=';')
+    df2.replace(to_replace=0, method='ffill', inplace=True) # Replace 0 to avoid dividing by 0 later on
+    df2.drop('UXA1 Comdty Trade Open', axis=1, inplace=True)
+    df2['Dates'] = pd.to_datetime(df2['Dates'], format='%d.%m.%y %H:%M')
+    df2.sort_values('Dates', inplace=True)
+    df2.sort_values('Dates')
+    df2.index = df2['Dates']
+    df2
+
+    df3 = pd.merge(df, df2, left_index=True, right_index=True)
+    df3['Dates'] = pd.to_datetime(df3['Dates'], format='%d.%m.%y %H:%M')
+    df3.index = df3['Dates']
+    df3
+
+    df_metrics = data_merge(data_read_dict('data/bbg/'))
+    df_metrics.shape
+    # excluding eurgbp for now
+    df_metrics = df_metrics.loc[:, [i for i in df_metrics.columns if i.split('___')[0].lower() != 'eurgbp']]
+
+    df_merged = pd.merge(df3, df_metrics, left_index=True, right_index=True, how='outer')
+    df_merged = df_merged.loc[df_merged.index <= max(df3.Dates),:]
+    df = df_merged[:]
+    df.drop('Dates', axis=1, inplace=True)
+    df = df.asfreq('600S').ffill()
+    df = df.astype(dtype)
+    df[df == np.infty] = 0 
+    df[df == -np.infty] = 0
+    df.dropna(how='all', axis=0, inplace=True) # Drop all rows with NaN values"
+    df.fillna(0, inplace=True)
+
+    df = df.loc[(df.index >= '2020-11-01') & (df.index < '2021-08-01'), :]    
+    del df_merged, df2, df3
+    return df
