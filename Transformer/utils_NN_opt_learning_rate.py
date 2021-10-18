@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 def opt_learn_rate_plot(model, X, y, lr0=10**-5, lr1=10, s=500, batch_size=64):
     """Plot learning rate vs loss, to find optimal learning rate through elbow trick, learning rate at elbow / 10.
     
-    Model is compiled with ADAM optimizer and MSE loss.
     For further information, see page 325f. in Hands-On Machinea Learning with Scikit-Learn, Keras & TensorFlow.
 
     Args:
@@ -22,11 +21,15 @@ def opt_learn_rate_plot(model, X, y, lr0=10**-5, lr1=10, s=500, batch_size=64):
     Returns:
         None: Image plotting learning rate vs log(loss)
     """
-    tmp_model = tf.keras.models.clone_model(model)
-    tmp_model.compile(
-        optimizer=Adam(),
-        loss='mean_squared_error'
-    )
+    import os
+    if not os.path.exists('tmp'):
+        os.mkdir('tmp')
+    model.save('tmp/model.hdf5')
+    tmp_model = tf.keras.models.load_model('tmp/model.hdf5')
+    # tmp_model.compile(
+    #     optimizer=Adam(),
+    #     loss='mean_squared_error'
+    # )
     def learning_rate_scheduler(lr0=10**(-5), lr1=10, s=50):
         def exp_increade_fn(epoch):
             return lr0 * math.exp(math.log(lr1/lr0) / s) ** (epoch)
@@ -44,6 +47,8 @@ def opt_learn_rate_plot(model, X, y, lr0=10**-5, lr1=10, s=500, batch_size=64):
         ]
     )
     del tmp_model
+    os.remove('tmp/model.hdf5')
+    os.rmdir('tmp')
     plt.plot(
         history.history['lr'],
         history.history['loss'],
