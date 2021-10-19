@@ -63,12 +63,12 @@ def get_fx_and_metric_data(
     df2.sort_values('Dates', inplace=True)
     df2.sort_values('Dates')
     df2.index = df2['Dates']
-    df2
+    # df2
 
     df3 = pd.merge(df, df2, left_index=True, right_index=True)
     df3['Dates'] = pd.to_datetime(df3['Dates'], format='%d.%m.%y %H:%M')
     df3.index = df3['Dates']
-    df3
+    # df3
 
     df_metrics = data_merge(data_read_dict('data/bbg/'))
     df_metrics.shape
@@ -83,9 +83,71 @@ def get_fx_and_metric_data(
     df = df.astype(dtype)
     df[df == np.infty] = 0 
     df[df == -np.infty] = 0
-    df.dropna(how='all', axis=0, inplace=True) # Drop all rows with NaN values"
+    # df.dropna(how='all', axis=0, inplace=True) # Drop all rows with NaN values"
+    # TODO: fixing still missing values in metric data
     df.fillna(0, inplace=True)
+    df = df.loc[(df.index >= '2020-11-01') & (df.index < '2021-08-01'), :]
+    del df_merged, df2, df3
+    return df
 
-    df = df.loc[(df.index >= '2020-11-01') & (df.index < '2021-08-01'), :]    
+
+def get_fx_and_metric_data_wo_weekend(
+    *,
+    pct_change:bool=True,
+    dtype:np.float=None
+) -> pd.DataFrame:
+    """Gets the FX spot rates and combines data with metrics, without missing values on weekends (and bank holidays).
+
+    Args:
+        pct_change (bool, optional): Returns percantage change. Defaults to True.
+        dtype (numpy.float, optional): data type of data, options 'numpy.floatX'. Defaults to None.
+
+    Returns:
+        pd.DataFrame: Spot rates and metrics in one pandas.DataFrame
+    """
+
+    path = 'data/10min Dataset Spot.csv'
+    df = pd.read_csv(path, delimiter=';')
+    df['Dates'] = pd.to_datetime(df['Dates'], format='%d.%m.%y %H:%M')
+    df.set_index('Dates', inplace=True)
+    df = df.asfreq('600S')
+    if pct_change:
+        df = df.pct_change()[1:]
+    assert len(set(np.diff(df.index.values))) == 1
+
+    FX_Fundamentals_path = 'data/10min Dataset Rest.csv'
+    df2 = pd.read_csv(FX_Fundamentals_path, delimiter=';')
+    df2.replace(to_replace=0, method='ffill', inplace=True) # Replace 0 to avoid dividing by 0 later on
+    df2.drop('UXA1 Comdty Trade Open', axis=1, inplace=True)
+    df2['Dates'] = pd.to_datetime(df2['Dates'], format='%d.%m.%y %H:%M')
+    df2.sort_values('Dates', inplace=True)
+    df2.sort_values('Dates')
+    df2.index = df2['Dates']
+    # df2
+
+    df3 = pd.merge(df, df2, left_index=True, right_index=True)
+    df3['Dates'] = pd.to_datetime(df3['Dates'], format='%d.%m.%y %H:%M')
+    df3.index = df3['Dates']
+    # df3
+
+    df_metrics = data_merge(data_read_dict('data/bbg/'))
+    df_metrics.shape
+    # excluding eurgbp for now
+    df_metrics = df_metrics.loc[:, [i for i in df_metrics.columns if i.split('___')[0].lower() != 'eurgbp']]
+
+    df_merged = pd.merge(df3, df_metrics, left_index=True, right_index=True, how='outer')
+    df_merged = df_merged.loc[~df_merged.loc[:, set(df.columns.append(df2.columns))].isna().all(axis=1)]
+    # df_merged.loc[:, set(df_merged) - set(df.columns) - set(df2.columns)].isna().sum()
+    # [i * 10**-9 for i in set(np.diff(df_merged.index))]
+    df = df_merged[:]
+    df.drop('Dates', axis=1, inplace=True)
+    # df = df.asfreq('600S')
+    df = df.ffill()
+    df = df.loc[(df.index >= '2020-11-01') & (df.index < '2021-08-01'), :]
+    #TODO: There will still be NA values (metric values) in the beginning, possible fixes:
+    df = df.bfill()  # back fill
+    # df.dropna(how='all', axis=0, inplace=True)  # Drop all rows with NaN values"
+    # df.fillna(0, inplace=True)  # impute all NaNs with 0
+    df = df.astype(dtype)    
     del df_merged, df2, df3
     return df
