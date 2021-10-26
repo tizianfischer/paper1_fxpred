@@ -110,10 +110,10 @@ def get_fx_and_metric_data_wo_weekend(
     df = pd.read_csv(path, delimiter=';')
     df['Dates'] = pd.to_datetime(df['Dates'], format='%d.%m.%y %H:%M')
     df.set_index('Dates', inplace=True)
-    df = df.asfreq('600S')
+    # df = df.asfreq('600S')
     if pct_change:
         df = df.pct_change()[1:]
-    assert len(set(np.diff(df.index.values))) == 1
+    # assert len(set(np.diff(df.index.values))) == 1
 
     FX_Fundamentals_path = 'data/10min Dataset Rest.csv'
     df2 = pd.read_csv(FX_Fundamentals_path, delimiter=';')
@@ -134,11 +134,21 @@ def get_fx_and_metric_data_wo_weekend(
     df_metrics.shape
     # excluding eurgbp for now
     df_metrics = df_metrics.loc[:, [i for i in df_metrics.columns if i.split('___')[0].lower() != 'eurgbp']]
-
     df_merged = pd.merge(df3, df_metrics, left_index=True, right_index=True, how='outer')
+    
+    # Deleting all rows that have missing values in df and df2 columns
     df_merged = df_merged.loc[~df_merged.loc[:, set(df.columns.append(df2.columns))].isna().all(axis=1)]
-    # df_merged.loc[:, set(df_merged) - set(df.columns) - set(df2.columns)].isna().sum()
-    # [i * 10**-9 for i in set(np.diff(df_merged.index))]
+
+    # Deleting all columns with duplicated data that occur on the weekend
+    #(np.diff(df_merged.loc[:, df.columns], prepend=-9999) == 0).mean(axis=1) < 0.95
+    duplicates = df_merged.loc[:, df.columns].duplicated()
+    weekend = [i.weekday() in [5, 6] for i in df_merged.index]
+    # sum(duplicates)
+    # sum(weekend)
+    # sum(duplicates & weekend)
+    # sum(duplicates | weekend)
+    df_merged = df_merged.loc[~(duplicates & weekend), :]
+
     df = df_merged[:]
     df.drop('Dates', axis=1, inplace=True)
     # df = df.asfreq('600S')
