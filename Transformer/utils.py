@@ -34,7 +34,8 @@ def data_merge(data):
 def get_fx_and_metric_data(
     *,
     pct_change:bool=True,
-    dtype:np.float=None
+    dtype:np.float=None,
+    directory='data'
 ) -> pd.DataFrame:
     """Gets the FX spot rates and combines data with metrics
 
@@ -45,8 +46,7 @@ def get_fx_and_metric_data(
     Returns:
         pd.DataFrame: Spot rates and metrics in one pandas.DataFrame
     """
-
-    path = 'data/10min Dataset Spot.csv'
+    path = os.path.join(directory, '10min Dataset Spot.csv')
     df = pd.read_csv(path, delimiter=';')
     df['Dates'] = pd.to_datetime(df['Dates'], format='%d.%m.%y %H:%M')
     df.set_index('Dates', inplace=True)
@@ -55,7 +55,7 @@ def get_fx_and_metric_data(
         df = df.pct_change()[1:]
     assert len(set(np.diff(df.index.values))) == 1
 
-    FX_Fundamentals_path = 'data/10min Dataset Rest.csv'
+    FX_Fundamentals_path = os.path.join(directory, '10min Dataset Rest.csv')
     df2 = pd.read_csv(FX_Fundamentals_path, delimiter=';')
     df2.replace(to_replace=0, method='ffill', inplace=True) # Replace 0 to avoid dividing by 0 later on
     df2.drop('UXA1 Comdty Trade Open', axis=1, inplace=True)
@@ -69,8 +69,8 @@ def get_fx_and_metric_data(
     df3['Dates'] = pd.to_datetime(df3['Dates'], format='%d.%m.%y %H:%M')
     df3.index = df3['Dates']
     # df3
-
-    df_metrics = data_merge(data_read_dict('data/bbg/'))
+    
+    df_metrics = data_merge(data_read_dict(os.path.join(directory, 'bbg/')))
     df_metrics.shape
     # excluding eurgbp for now
     df_metrics = df_metrics.loc[:, [i for i in df_metrics.columns if i.split('___')[0].lower() != 'eurgbp']]
@@ -94,7 +94,8 @@ def get_fx_and_metric_data(
 def get_fx_and_metric_data_wo_weekend(
     *,
     pct_change:bool=True,
-    dtype:np.float=None
+    dtype:np.float=None,
+    directory='data'
 ) -> pd.DataFrame:
     """Gets the FX spot rates and combines data with metrics, without missing values on weekends (and bank holidays).
 
@@ -105,8 +106,7 @@ def get_fx_and_metric_data_wo_weekend(
     Returns:
         pd.DataFrame: Spot rates and metrics in one pandas.DataFrame
     """
-
-    path = 'data/10min Dataset Spot.csv'
+    path = os.path.join(directory, '10min Dataset Spot.csv')
     df = pd.read_csv(path, delimiter=';')
     df['Dates'] = pd.to_datetime(df['Dates'], format='%d.%m.%y %H:%M')
     df.set_index('Dates', inplace=True)
@@ -115,7 +115,7 @@ def get_fx_and_metric_data_wo_weekend(
         df = df.pct_change()[1:]
     # assert len(set(np.diff(df.index.values))) == 1
 
-    FX_Fundamentals_path = 'data/10min Dataset Rest.csv'
+    FX_Fundamentals_path = os.path.join(directory, '10min Dataset Rest.csv')
     df2 = pd.read_csv(FX_Fundamentals_path, delimiter=';')
     df2.replace(to_replace=0, method='ffill', inplace=True) # Replace 0 to avoid dividing by 0 later on
     df2.drop('UXA1 Comdty Trade Open', axis=1, inplace=True)
@@ -123,14 +123,13 @@ def get_fx_and_metric_data_wo_weekend(
     df2.sort_values('Dates', inplace=True)
     df2.sort_values('Dates')
     df2.index = df2['Dates']
-    # df2
 
+    # df3
     df3 = pd.merge(df, df2, left_index=True, right_index=True)
     df3['Dates'] = pd.to_datetime(df3['Dates'], format='%d.%m.%y %H:%M')
     df3.index = df3['Dates']
-    # df3
 
-    df_metrics = data_merge(data_read_dict('data/bbg/'))
+    df_metrics = data_merge(data_read_dict(os.path.join(directory, 'bbg')))
     df_metrics.shape
     # excluding eurgbp for now
     df_metrics = df_metrics.loc[:, [i for i in df_metrics.columns if i.split('___')[0].lower() != 'eurgbp']]
