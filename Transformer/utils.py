@@ -30,6 +30,9 @@ def data_merge(data):
             tmp = pd.merge(tmp, v, left_index=True, right_index=True, how='outer')
     return tmp
 
+def mde(y_true, y_pred):
+    return 1 - np.equal(y_true[1:] - y_true[:-1] >= 0, y_pred[1:] - y_true[:-1] >= 0).mean()
+
 
 def get_fx_and_metric_data(
     *,
