@@ -19,7 +19,7 @@ if platform.node() in ['msbq']:
     # os.chdir('../.')
     sys.path.append(os.path.join(os.getcwd(), 'Transformer'))
 from utils import data_read_dict, data_read_concat, data_merge
-from utils import get_fx_and_metric_data_wo_weekend
+from utils import get_fx_and_metric_data_wo_weekend, mde
 
 dtype = None  # np.float16
 # %% read in data and adapt
@@ -141,9 +141,17 @@ y_pred = y_train[:-1]
 print(f'mse: {MSE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mae: {MAE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mape: {MAPE(y.flatten(), y_pred.flatten()).numpy()}')
-print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
+# print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
+print(f'mde: {mde(y, y_pred)}')
 
-# pd.Series((y_pred - y).reshape(-1), index=index_test[6+1:]).plot(); plt.show()
+
+y = y_val[1:]
+y_pred = y_val[:-1]
+print(f'mse: {MSE(y.flatten(), y_pred.flatten()).numpy()}')
+print(f'mae: {MAE(y.flatten(), y_pred.flatten()).numpy()}')
+print(f'mape: {MAPE(y.flatten(), y_pred.flatten()).numpy()}')
+# print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
+print(f'mde: {mde(y, y_pred)}')
 
 print('test')
 y = y_test[1:]
@@ -151,34 +159,6 @@ y_pred = y_test[:-1]
 print(f'mse: {MSE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mae: {MAE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mape: {MAPE(y.flatten(), y_pred.flatten()).numpy()}')
-print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
+# print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
+print(f'mde: {mde(y, y_pred)}')
 
-# df.iloc[:, target_column].plot()
-# plt.show()
-
-# df.iloc[:, target_column: target_column + 1].plot()
-# plt.show()
-
-# df.iloc[:, target_column: target_column + 1].plot.density()
-# plt.show()
-
-# tmp = df.iloc[:, target_column: target_column + 1]
-# tmp.loc[tmp.iloc[:, 0] != 0, :].plot.density()
-# plt.show()
-
-
-# from sklearn.preprocessing import Normalizer
-# mms = MinMaxScaler(feature_range=(0,1))
-# mms = Normalizer()
-# pd.Series(mms.fit_transform(df.iloc[:, target_column: target_column + 1])[:, 0]).plot.density()
-# plt.show()
-
-
-# for i in range(1, 2):
-#     plt.scatter(
-#         df.iloc[:-i, target_column],
-#         df.iloc[i:, target_column]
-#     )
-# plt.xlabel('y_{t-1}')
-# plt.ylabel('y_t')
-# plt.show()
