@@ -98,7 +98,8 @@ def get_fx_and_metric_data_wo_weekend(
     *,
     pct_change:bool=True,
     dtype:np.float=None,
-    directory='data'
+    directory='data',
+    sep=','
 ) -> pd.DataFrame:
     """Gets the FX spot rates and combines data with metrics, without missing values on weekends (and bank holidays).
 
@@ -110,7 +111,7 @@ def get_fx_and_metric_data_wo_weekend(
         pd.DataFrame: Spot rates and metrics in one pandas.DataFrame
     """
     path = os.path.join(directory, '10min Dataset Spot.csv')
-    df = pd.read_csv(path, delimiter=';')
+    df = pd.read_csv(path, delimiter=sep)
     df['Dates'] = pd.to_datetime(df['Dates'], format='%d.%m.%y %H:%M')
     df.set_index('Dates', inplace=True)
     # df = df.asfreq('600S')
@@ -119,7 +120,7 @@ def get_fx_and_metric_data_wo_weekend(
     # assert len(set(np.diff(df.index.values))) == 1
 
     FX_Fundamentals_path = os.path.join(directory, '10min Dataset Rest.csv')
-    df2 = pd.read_csv(FX_Fundamentals_path, delimiter=';')
+    df2 = pd.read_csv(FX_Fundamentals_path, delimiter=sep)
     df2.replace(to_replace=0, method='ffill', inplace=True) # Replace 0 to avoid dividing by 0 later on
     df2.drop('UXA1 Comdty Trade Open', axis=1, inplace=True)
     df2['Dates'] = pd.to_datetime(df2['Dates'], format='%d.%m.%y %H:%M')
