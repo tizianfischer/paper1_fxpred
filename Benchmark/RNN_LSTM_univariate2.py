@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 # coding: utf-8
 
 # %% Loading Packages
@@ -21,6 +22,7 @@ from tensorflow.keras.activations import tanh
 from tensorflow.keras.layers import PReLU
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import Flatten
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.losses import MSE, MAE, MAPE
 from tensorflow.keras.callbacks import LearningRateScheduler
@@ -40,7 +42,7 @@ if platform.node() in ['msbq']:
     # os.chdir('../.')
     sys.path.append(os.path.join(os.getcwd(), 'Transformer'))
 # from utils import data_read_dict, data_read_concat, data_merge
-from utils import get_fx_and_metric_data_wo_weekend
+from utils import get_fx_and_metric_data_wo_weekend, mde
 from utils_NN_opt_learning_rate import opt_learn_rate_plot
 
 
@@ -48,7 +50,8 @@ dtype = np.float32  # np.float64
 tf.keras.backend.set_floatx('float32')
 # %% read in data and adapt
 df = get_fx_and_metric_data_wo_weekend(dtype=dtype)
-# df = df.loc[(df.iloc[:, :4] != 0).all(axis=1)]
+target_column = list(df.columns).index('EURUSD BGNE Curncy Bid Close')
+df = df.iloc[:, target_column : target_column + 1]
 
 
 # %% 
@@ -58,15 +61,15 @@ def actual_pred_plot(preds, y_test, error=False):
     '''
     if not error:
         actual_pred = pd.DataFrame(columns = ['Adj. Close', 'prediction'])
-        actual_pred['prediction'] = preds[:,0]
-        actual_pred['Adj. Close'] = y_test[:,0]  #.loc['2019':,'Adj Close'][0:len(preds)]
+        actual_pred['prediction'] = preds
+        actual_pred['Adj. Close'] = y_test  #.loc['2019':,'Adj Close'][0:len(preds)]
     else:
         actual_pred = pd.DataFrame(columns = ['Error'])
-        actual_pred['Error'] = preds[:,0] - y_test[:, 0]
+        actual_pred['Error'] = preds - y_test
 
     from tensorflow.keras.metrics import MeanSquaredError
     m = MeanSquaredError()
-    m.update_state(np.array(y_test[:,0]),np.array(preds[:,0]))
+    m.update_state(np.array(y_test),np.array(preds))
     return (m.result().numpy(), actual_pred.plot() )
 
 # %% plot one closing currency pair
@@ -103,8 +106,8 @@ def ts_train_test_normalize(df,time_steps,for_periods, target_column=3):
     #   df.columns[np.isnan(df).any(axis=0)]
     
     # sc = MinMaxScaler((-1, 1)).fit(ts_train)
-    sc = StandardScaler().fit(ts_train)
-    sc_target = StandardScaler().fit(ts_train.iloc[:, target_column:target_column+1])
+    sc = MinMaxScaler().fit(ts_train)
+    sc_target = MinMaxScaler().fit(ts_train.iloc[:, target_column:target_column+1])
     ts_train_scaled = sc.transform(ts_train)
     ts_val_scaled = sc.transform(ts_val)
 
@@ -149,13 +152,9 @@ def ts_train_test_normalize(df,time_steps,for_periods, target_column=3):
 
     return X_train, y_train, X_val, y_val , X_test, y_test, sc, sc_target, index_train, index_val, index_test
 
-target_column = list(df.columns).index('EURUSD BGNE Curncy Bid Close')
 X_train, y_train, X_val, y_val , X_test, y_test, sc, sc_target, index_train, index_val, index_test = \
-    ts_train_test_normalize(df, 64, 1, target_column)
+    ts_train_test_normalize(df, 128, 1, 0)
 
-X_train = X_train[:, :, target_column : target_column + 1]
-X_val = X_val[:, :, target_column : target_column + 1]
-X_test = X_test[:, :, target_column : target_column + 1]
 # %% RNN model
 def simple_rnn_model(X_train, y_train, X_test, sc):
     '''
@@ -185,38 +184,24 @@ def simple_rnn_model(X_train, y_train, X_test, sc):
 
 def LSTM_model():
     # The LSTM architecture
-    loss_fct = 'LeakyReLU'
+    loss_fct = 'tanh'
 
     my_LSTM_model = Sequential()
-    for _ in range(0):
-        my_LSTM_model.add(BatchNormalization())
-        my_LSTM_model.add(LSTM(
-            units=512,
-            activation=loss_fct,
-            return_sequences=True
-        ))
-    for _ in range(3):
-        my_LSTM_model.add(BatchNormalization())
-        my_LSTM_model.add(LSTM(
-            units=256,
-            activation=loss_fct,
-            return_sequences=True
-        ))
-    for _ in range(3):
-        my_LSTM_model.add(BatchNormalization())
-        my_LSTM_model.add(LSTM(
-            units=128,
-            activation=loss_fct,
-            return_sequences=True
-        ))
+    my_LSTM_model.add(LSTM(units=128, activation=loss_fct, return_sequences=True, dropout=0.5))
+    my_LSTM_model.add(BatchNormalization())
+    my_LSTM_model.add(LSTM(units=128, activation=loss_fct, return_sequences=True, dropout=0.5))
+    my_LSTM_model.add(BatchNormalization())
+    my_LSTM_model.add(LSTM(units=64, activation=loss_fct, return_sequences=True, dropout=0.5))
     # my_LSTM_model.add(tf.keras.layers.BatchNormalization())
+    my_LSTM_model.add(Flatten())
+    my_LSTM_model.add(Dropout(0.5))
+    my_LSTM_model.add(Dense(units=128))
     my_LSTM_model.add(Dense(units=1))
     # my_LSTM_model.add(LSTM(units=1))
-
     return my_LSTM_model
 
 def predictions(my_model, X_test, sc=None):
-    LSTM_prediction = my_model.predict(X_test)[:, :, 0]
+    LSTM_prediction = my_model.predict(X_test)
     if sc is not None:
         LSTM_prediction = sc.inverse_transform(LSTM_prediction)
     return LSTM_prediction
@@ -232,10 +217,13 @@ def earlyStopping():
         restore_best_weights=True,
     )
 def learning_rate_scheduler(epoch):
-    if epoch < 10:
+    if epoch < 5:
         return 0.001
-    else:
-        return 0.001
+    elif epoch < 10:
+        return 0.0005
+    elif epoch < 100:
+        return 0.0001
+
 
 
 
@@ -258,15 +246,15 @@ my_LSTM_model.compile(
 history = my_LSTM_model.fit(
     X_train, y_train,
     # X_train, y_train,
-    epochs=20,
-    # epochs=1,
-    # steps_per_epoch=1,
+    # epochs=50,
+    epochs=1,
+    steps_per_epoch=1,
     batch_size=64,
     validation_data=(X_val, y_val),
     verbose=1,
     shuffle=True,
     callbacks=[
-        earlyStopping(),
+        # earlyStopping(),
         LearningRateScheduler(learning_rate_scheduler),
         tf.keras.callbacks.TerminateOnNaN()
     ]
@@ -274,6 +262,7 @@ history = my_LSTM_model.fit(
 plt.plot(history.history['loss'], label='train')
 plt.plot(history.history['val_loss'], label='test')
 plt.legend()
+plt.ylim(0, 0.01)
 plt.show()
 
 my_LSTM_model.summary()
@@ -283,11 +272,11 @@ opt_learn_rate_plot(
     my_LSTM_model,
     X_train,
     y_train,
-    10**-5,
-    10**0,
+    10**-6,
+    10**-2,
     100,
     batch_size=64,
-    steps_per_epoch=2
+    steps_per_epoch=1
 )
 # Compiling
 # %%
@@ -296,38 +285,38 @@ opt_learn_rate_plot(
 # sc = sc_target
 LSTM_prediction = predictions(
     my_LSTM_model,
-    X_test, #[:, :, target_column : target_column + 1],
+    X_test,
     sc_target
 )
-LSTM_prediction[1:10]
-actual_pred_plot(LSTM_prediction, sc_target.inverse_transform(y_test))
+actual_pred_plot(LSTM_prediction[:, 0], sc_target.inverse_transform(y_test)[:, 0])
 plt.show()
 
-
+print('Test')
 y = sc_target.inverse_transform(y_test)
 # y = y_test
 y_pred = LSTM_prediction = predictions(
     my_LSTM_model,
     X_test,
     sc_target
-)[:, 0]
+)
 print(f'mse: {MSE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mae: {MAE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mape: {MAPE(y.flatten(), y_pred.flatten()).numpy()}')
-print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
+print(f'mde: {mde(y.flatten(), y_pred.flatten())}')
 
-
+print('Train')
 y = sc_target.inverse_transform(y_train)
 y_pred = predictions(
     my_LSTM_model,
     X_train,
-    sc_target
-)[:, 0]
+    # sc_target
+)
+actual_pred_plot(y_pred[:, 0], sc_target.inverse_transform(y_train)[:, 0])
+plt.show()
 print(f'mse: {MSE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mae: {MAE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mape: {MAPE(y.flatten(), y_pred.flatten()).numpy()}')
-print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
-
+print(f'mde: {mde(y.flatten(), y_pred.flatten())}')
 
 
 # actual_pred_plot((LSTM_prediction- LSTM_prediction[:, 0].mean()) * 150, y_test, error=True)

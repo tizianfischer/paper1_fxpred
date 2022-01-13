@@ -40,7 +40,7 @@ if platform.node() in ['msbq']:
     # os.chdir('../.')
     sys.path.append(os.path.join(os.getcwd(), 'Transformer'))
 # from utils import data_read_dict, data_read_concat, data_merge
-from utils import get_fx_and_metric_data_wo_weekend
+from utils import get_fx_and_metric_data_wo_weekend, mde
 from utils_NN_opt_learning_rate import opt_learn_rate_plot
 
 
@@ -108,15 +108,6 @@ def ts_train_test_normalize(df,time_steps,for_periods, target_column=3):
     ts_train_scaled = sc.transform(ts_train)
     ts_val_scaled = sc.transform(ts_val)
 
-    
-
-
-    # ts_train_scaled = pd.DataFrame(
-    #     (df.values - df.values.mean(axis=0)[np.newaxis]) / df.values.std(axis=0)[np.newaxis]
-    # )
-    # ts_train_scaled.index = df.index
-    # ts_train_scaled.columns = df.columns
-    
     # create training data of s samples and t time steps
     X_train = []
     y_train = []
@@ -344,6 +335,7 @@ actual_pred_plot(LSTM_prediction, sc_target.inverse_transform(y_test))
 plt.show()
 
 
+print('Test')
 y = sc_target.inverse_transform(y_test)
 # y = y_test
 y_pred = LSTM_prediction = predictions(
@@ -354,9 +346,9 @@ y_pred = LSTM_prediction = predictions(
 print(f'mse: {MSE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mae: {MAE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mape: {MAPE(y.flatten(), y_pred.flatten()).numpy()}')
-print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
+print(f'mde: {mde(y.flatten(), y_pred.flatten())}')
 
-
+print('Train')
 y = sc_target.inverse_transform(y_train)
 y_pred = predictions(
     my_LSTM_model,
@@ -366,8 +358,7 @@ y_pred = predictions(
 print(f'mse: {MSE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mae: {MAE(y.flatten(), y_pred.flatten()).numpy()}')
 print(f'mape: {MAPE(y.flatten(), y_pred.flatten()).numpy()}')
-print(f'mde: {1 - np.mean(np.diff(y.flatten()) * (y_pred.flatten() - y.flatten())[1:] >= 0)}')
-
+print(f'mde: {mde(y.flatten(), y_pred.flatten())}')
 
 
 # actual_pred_plot((LSTM_prediction- LSTM_prediction[:, 0].mean()) * 150, y_test, error=True)
