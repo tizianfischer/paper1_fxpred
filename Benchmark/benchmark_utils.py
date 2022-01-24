@@ -57,11 +57,16 @@ def ts_train_test_normalize(df, time_steps, for_periods, target_column=3, dtype=
     # create training data of s samples and t time steps
     X_train = []
     y_train = []
+    X_train_index = []
+    y_train_index = []
     y_train_stacked = []
     for i in range(time_steps,ts_train_len-1): 
         X_train.append(ts_train_scaled[i-time_steps:i])
+        X_train_index.append(index_train[i-time_steps:i])
         y_train.append(ts_train_scaled[i:i+for_periods,target_column])
+        y_train_index.append(index_train[i:i+for_periods])
     X_train, y_train = np.array(X_train, dtype=dtype), np.array(y_train, dtype=dtype)
+    X_train_index, y_train_index = np.array(X_train_index, dtype=dtype), np.array(y_train_index, dtype=dtype)
 
     X_val = []
     y_val = []
@@ -84,7 +89,7 @@ def ts_train_test_normalize(df, time_steps, for_periods, target_column=3, dtype=
     X_test, y_test = np.array(X_test, dtype=dtype), np.array(y_test, dtype=dtype)
     #     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1],1))
 
-    return X_train, y_train, X_val, y_val , X_test, y_test, sc, sc_target, index_train, index_val, index_test
+    return X_train, y_train, X_val, y_val , X_test, y_test, sc, sc_target, index_train, index_val, index_test, X_train_index, y_train_index
 
 
 def ts_train_test_normalize2(df, time_steps, for_periods = 1, target_columns_id=[3], dtype=None):
@@ -117,15 +122,28 @@ def ts_train_test_normalize2(df, time_steps, for_periods = 1, target_columns_id=
     sc = StandardScaler().fit(ts_train)
     sc_target = StandardScaler().fit(ts_train.iloc[:, target_columns_id])
     ts_val_scaled = sc.transform(ts_val)
+
     # create training data of s samples and t time steps
+#     X_train = []
+#     y_train = []
+#     y_train_stacked = []
+#     for i in range(time_steps,ts_train_len-for_periods): 
+#         X_train.append(ts_train_scaled[i-time_steps:i].tolist())
+#         y_train.append(ts_train_scaled[i:i+for_periods,target_columns_id].tolist())
+#     X_train, y_train = np.array(X_train, dtype=dtype), np.array(y_train, dtype=dtype)
     X_train = []
     y_train = []
+    X_train_index = []
+    y_train_index = []
     y_train_stacked = []
-    for i in range(time_steps,ts_train_len-for_periods): 
-        X_train.append(ts_train_scaled[i-time_steps:i].tolist())
-        y_train.append(ts_train_scaled[i:i+for_periods,target_columns_id].tolist())
+    for i in range(time_steps,ts_train_len-1): 
+        X_train.append(ts_train_scaled[i-time_steps:i])
+        X_train_index.append(index_train[i-time_steps:i])
+        y_train.append(ts_train_scaled[i:i+for_periods,target_column])
+        y_train_index.append(index_train[i:i+for_periods])
     X_train, y_train = np.array(X_train, dtype=dtype), np.array(y_train, dtype=dtype)
-
+    X_train_index, y_train_index = np.array(X_train_index, dtype=dtype), np.array(y_train_index, dtype=dtype)
+    
     X_val = []
     y_val = []
     y_val_stacked = []
@@ -147,4 +165,4 @@ def ts_train_test_normalize2(df, time_steps, for_periods = 1, target_columns_id=
     X_test, y_test = np.array(X_test, dtype=dtype), np.array(y_test, dtype=dtype)
     #     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1],1))
 
-    return X_train, y_train, X_val, y_val , X_test, y_test, sc, sc_target, index_train, index_val, index_test
+    return X_train, y_train, X_val, y_val , X_test, y_test, sc, sc_target, index_train, index_val, index_test, X_train_index, y_train_index
