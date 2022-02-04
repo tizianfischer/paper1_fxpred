@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 import matplotlib.pyplot as plt
 
-def opt_learn_rate_plot(model, X, y, lr0=10**-5, lr1=10, s=500, batch_size=64, *, steps_per_epoch=1):
+def opt_learn_rate_plot(model, X, y, lr0=10**-5, lr1=10, s=500, batch_size=64, *, steps_per_epoch=1, custom_objects=None):
     """Plot learning rate vs loss, to find optimal learning rate through elbow trick, learning rate at elbow / 10.
     
     For further information, see page 325f. in Hands-On Machinea Learning with Scikit-Learn, Keras & TensorFlow.
@@ -25,7 +25,7 @@ def opt_learn_rate_plot(model, X, y, lr0=10**-5, lr1=10, s=500, batch_size=64, *
     if not os.path.exists('tmp'):
         os.mkdir('tmp')
     model.save('tmp/model.hdf5')
-    tmp_model = tf.keras.models.load_model('tmp/model.hdf5')
+    tmp_model = tf.keras.models.load_model('tmp/model.hdf5', custom_objects=custom_objects)
     # tmp_model.compile(
     #     optimizer=Adam(),
     #     loss='mean_squared_error'
