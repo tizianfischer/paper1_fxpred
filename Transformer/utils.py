@@ -8,7 +8,7 @@ from typing import List
 def data_read_dict(fp):
     return {
         k.replace('.csv', '').lower() : pd.read_csv(os.path.join(fp, k), index_col=0, parse_dates=True)
-        for k in sorted(os.listdir(fp))
+        for k in sorted(os.listdir(fp)) if k != 'EURCHF.csv'
     }
 
 def data_read_concat(fp):
@@ -156,7 +156,7 @@ def get_fx_and_metric_data_wo_weekend(
     df.drop('Dates', axis=1, inplace=True)
     # df = df.asfreq('600S')
     df = df.ffill()
-    df = df.loc[(df.index >= '2020-11-01') & (df.index < '2021-12-01'), :]
+    df = df.loc[(df.index >= '2020-11-01') & (df.index < '2022-02-01'), :]
     #TODO: There will still be NA values (metric values) in the beginning, possible fixes:
     df = df.bfill()  # back fill
     # df.dropna(how='all', axis=0, inplace=True)  # Drop all rows with NaN values"
@@ -164,3 +164,6 @@ def get_fx_and_metric_data_wo_weekend(
     df = df.astype(dtype)    
     del df_merged, df2, df3
     return df
+
+
+get_fx_and_metric_data_wo_weekend()
