@@ -99,7 +99,8 @@ def get_fx_and_metric_data_wo_weekend(
     pct_change:bool=True,
     dtype:np.float=None,
     directory='data',
-    sep=','
+    sep=',',
+    enddate='2021-12-01'
 ) -> pd.DataFrame:
     """Gets the FX spot rates and combines data with metrics, without missing values on weekends (and bank holidays).
 
@@ -156,7 +157,7 @@ def get_fx_and_metric_data_wo_weekend(
     df.drop('Dates', axis=1, inplace=True)
     # df = df.asfreq('600S')
     df = df.ffill()
-    df = df.loc[(df.index >= '2020-11-01') & (df.index < '2022-02-01'), :]
+    df = df.loc[(df.index >= '2020-11-01') & (df.index < enddate), :]
     #TODO: There will still be NA values (metric values) in the beginning, possible fixes:
     df = df.bfill()  # back fill
     # df.dropna(how='all', axis=0, inplace=True)  # Drop all rows with NaN values"
