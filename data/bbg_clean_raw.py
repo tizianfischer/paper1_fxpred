@@ -26,20 +26,25 @@ if not os.path.isdir(fp_clean):
 for fp in tqdm.tqdm(os.listdir(fp_raw)):
     x = pd.read_excel(os.path.join(fp_raw, fp))
     x2 = pd.read_excel(os.path.join(fp_raw + '2', fp))
+    x3 = pd.read_excel(os.path.join(fp_raw + '3', fp))
 
     # delete all columns without input
     x = x.loc[:, ~x.isna().all(axis=0)]
     x2 = x2.loc[:, ~x2.isna().all(axis=0)]
+    x3 = x3.loc[:, ~x3.isna().all(axis=0)]
     fx_name = x.columns[0].replace(' Curncy', '')
     fx_name2 = x2.columns[0].replace(' Curncy', '')
+    fx_name3 = x3.columns[0].replace(' Curncy', '')
 
     # rename columns
     x.columns = x.iloc[1, :]
     x2.columns = x2.iloc[1, :]
+    x3.columns = x3.iloc[1, :]
 
     # delete first 2 lines
     x = x.iloc[2:, :]
     x2 = x2.iloc[2:, :]
+    x3 = x3.iloc[2:, :]
 
     # checking that all dates are same
     def clean(x):
@@ -76,10 +81,12 @@ for fp in tqdm.tqdm(os.listdir(fp_raw)):
                 del tmp
         return res
     res = clean(x)
-
     res2 = clean(x2)
+    res3 = clean(x3)
     assert res2.shape[0] != 0, f'{fp} is empty'
+    assert res3.shape[0] != 0, f'{fp} is empty'
     d_max = res.index.max()
+    d_max2 = res2.index.max()
 
     # test = pd.merge(res, res2, how='inner', left_index=True, right_index=True)
     # dd = pd.DataFrame.from_dict(
@@ -91,6 +98,6 @@ for fp in tqdm.tqdm(os.listdir(fp_raw)):
     # d_max = res.merge(res2, how='inner', left_index=True, right_index=True).index.max()
     # res.merge(res2.loc[res2.index > d_max], how='outer', left_index=True, right_index=True, indicator='False')
 
-    res = pd.concat([res, res2.loc[res2.index > d_max]])
+    res = pd.concat([res, res2.loc[res2.index > d_max], res3.loc[res3.index > d_max2]])
     res.to_csv(os.path.join(fp_clean, fx_name + '.csv'))
     
