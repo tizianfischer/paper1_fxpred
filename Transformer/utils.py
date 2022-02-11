@@ -8,7 +8,7 @@ from typing import List
 def data_read_dict(fp):
     return {
         k.replace('.csv', '').lower() : pd.read_csv(os.path.join(fp, k), index_col=0, parse_dates=True)
-        for k in sorted(os.listdir(fp)) if k != 'EURCHF.csv'
+        for k in sorted(os.listdir(fp))
     }
 
 def data_read_concat(fp):
