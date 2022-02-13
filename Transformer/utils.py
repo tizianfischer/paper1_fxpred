@@ -100,7 +100,7 @@ def get_fx_and_metric_data_wo_weekend(
     dtype:np.float=None,
     directory='data',
     sep=',',
-    enddate='2021-12-01'
+    enddate='2022-02-01'
 ) -> pd.DataFrame:
     """Gets the FX spot rates and combines data with metrics, without missing values on weekends (and bank holidays).
 
