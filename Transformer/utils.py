@@ -98,7 +98,7 @@ def get_fx_and_metric_data_wo_weekend(
     *,
     pct_change:bool=True,
     dtype:np.float=None,
-    directory='../data',
+    directory='data',
     sep=',',
     enddate='2022-02-01'
 ) -> pd.DataFrame:
