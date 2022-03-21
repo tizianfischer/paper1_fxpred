@@ -8,6 +8,21 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 # from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+
+def predictions(my_model, X_test, sc=None):
+    LSTM_prediction = my_model.predict(X_test)
+    if sc is not None:
+        LSTM_prediction = sc.inverse_transform(LSTM_prediction)
+    return LSTM_prediction
+def predictions2(my_model, X_test, sc=None, bs=100):
+    LSTM_prediction = np.concatenate(
+        [my_model.predict_on_batch(X_test[i * bs : min((i+1)*bs, X_test.shape[0])]) for i in range(X_test.shape[0] // bs + 1)],
+        axis = 0
+    )
+    if sc is not None:
+        LSTM_prediction = sc.inverse_transform(LSTM_prediction)
+    return LSTM_prediction
+
 def actual_pred_plot(preds, y_test, error=False):
     '''
     Plot the actual vs. prediction
